@@ -41,8 +41,13 @@ public class MainView {
     }
 
     @FXML
-    public void upload() {
-
+    public void upload() throws IOException {
+        Parent root = FXMLLoader.load(getClass().getResource(ViewPath.UPLOAD.toString()));
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setTitle(Constants.WINDOW_TITLE);
+        stage.show();
     }
 
     @FXML

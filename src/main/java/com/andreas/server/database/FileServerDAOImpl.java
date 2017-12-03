@@ -27,7 +27,8 @@ public class FileServerDAOImpl implements FileServerDAO {
     private PreparedStatement getAllUsersStatement;
     private PreparedStatement getUserByNameStatement;
     private PreparedStatement loginStatement;
-    private PreparedStatement insertFileStatment;
+    private PreparedStatement insertFileStatement;
+    private PreparedStatement getFilesForUserStatement;
 
     public FileServerDAOImpl() throws DatabaseException {
         Connection connection;
@@ -124,17 +125,36 @@ public class FileServerDAOImpl implements FileServerDAO {
     }
 
     @Override
-    public List<FileMetaDTO> getFiles(UserDTO currentUser) throws DatabaseException {
-        return null;
+    public List<FileMetaDTO> getFiles(UserDTO user) throws DatabaseException {
+        List<FileMetaDTO> files = new ArrayList<>();
+
+        try {
+            getFilesForUserStatement.setInt(1, user.getId());
+            ResultSet resultSet = getFilesForUserStatement.executeQuery();
+            while (resultSet.next()){
+                files.add(new FileMetaData(
+                        resultSet.getString(FileMetaDataTable.COLUMN_FILENAME),
+                        new User(user.getId(), user.getName()),
+                        resultSet.getBoolean(FileMetaDataTable.COLUMN_READ_ONLY),
+                        resultSet.getBoolean(FileMetaDataTable.COLUMN_PUBLIC)
+                ));
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+
+        //TODO: get public files
+        return files;
     }
 
     @Override
     public void insertFile(FileMetaDTO fileMeta) throws DatabaseException {
         try {
-            insertFileStatment.setString(1, fileMeta.getFilename());
-            insertFileStatment.setInt(2, fileMeta.getOwner().getId());
-            insertFileStatment.setBoolean(3, fileMeta.readOnly());
-            insertFileStatment.setBoolean(4, fileMeta.publicAccess());
+            insertFileStatement.setString(1, fileMeta.getFilename());
+            insertFileStatement.setInt(2, fileMeta.getOwner().getId());
+            insertFileStatement.setBoolean(3, fileMeta.readOnly());
+            insertFileStatement.setBoolean(4, fileMeta.publicAccess());
+            insertFileStatement.execute();
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
@@ -186,13 +206,17 @@ public class FileServerDAOImpl implements FileServerDAO {
                         " REFERENCES " + UserTable.TABLE_NAME + " (" + UserTable.COLUMN_ID + ") ON DELETE CASCADE ON UPDATE CASCADE" +
                         ");"
         );
-        this.insertFileStatment = connection.prepareStatement(
+        this.insertFileStatement = connection.prepareStatement(
                 "INSERT INTO " + FileMetaDataTable.TABLE_NAME + " (" +
                         FileMetaDataTable.COLUMN_FILENAME + ", " +
                         FileMetaDataTable.COLUMN_OWNER + ", " +
                         FileMetaDataTable.COLUMN_READ_ONLY + ", " +
                         FileMetaDataTable.COLUMN_PUBLIC +
                         ") VALUES (?,?,?,?);"
+        );
+        this.getFilesForUserStatement = connection.prepareStatement(
+                "SELECT * FROM " + FileMetaDataTable.TABLE_NAME + " WHERE " +
+                FileMetaDataTable.COLUMN_OWNER + " = ?;"
         );
 
     }

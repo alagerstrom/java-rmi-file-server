@@ -1,6 +1,8 @@
 package com.andreas.common;
 
-public interface FileMetaDTO {
+import java.io.Serializable;
+
+public interface FileMetaDTO extends Serializable{
 
     String getFilename();
 

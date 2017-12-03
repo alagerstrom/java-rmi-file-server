@@ -7,6 +7,7 @@ public class User implements UserDTO{
     private String name;
 
     public User(String name) {
+        this.id = -1;
         this.name = name;
     }
 

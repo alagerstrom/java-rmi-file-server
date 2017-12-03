@@ -1,11 +1,10 @@
 package com.andreas.client.controller;
 
 import com.andreas.common.Constants;
+import com.andreas.common.FileMetaDTO;
 import com.andreas.common.FileServer;
 import com.andreas.common.UserDTO;
 import com.andreas.server.database.DatabaseException;
-import com.andreas.server.model.FileMetaData;
-import com.andreas.server.model.User;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -20,6 +19,7 @@ public class ClientController {
     private static ClientController instance = new ClientController();
     private FileServer fileServer;
     private UserDTO currentUser;
+    private ObservableList<FileMetaDTO> files = FXCollections.observableArrayList();
 
     public static ClientController getInstance(){
         return instance;
@@ -73,10 +73,10 @@ public class ClientController {
                 completionHandler.failed(e, "Server error.");
             }
         });
-
     }
 
     public void logout(CompletionHandler<Void, Void> completionHandler) {
+        files.clear();
         CompletableFuture.runAsync(()->{
             try {
                 fileServer.logout(currentUser);
@@ -85,14 +85,27 @@ public class ClientController {
                 completionHandler.failed(e,null);
             }
         });
-
-
     }
 
-    public ObservableList<FileMetaData> getAllFiles() {
-        ObservableList<FileMetaData> fileMetaData = FXCollections.observableArrayList();
-        fileMetaData.add(new FileMetaData("Kalle.jpg",
-                new User("Kalle"), true, false));
-        return fileMetaData;
+    public ObservableList<FileMetaDTO> getAllFiles() {
+
+        CompletableFuture.runAsync(()->{
+            try {
+                files.addAll(fileServer.getFiles(currentUser));
+            } catch (RemoteException | DatabaseException e) {
+                e.printStackTrace();
+            }
+        });
+
+        return files;
+    }
+
+    public void uploadFile(String filename, boolean readOnly, boolean publicAccess) {
+        try {
+            FileMetaDTO fileMetaDTO = fileServer.uploadFile(filename, currentUser, readOnly, publicAccess);
+            files.add(fileMetaDTO);
+        } catch (RemoteException | DatabaseException e) {
+            e.printStackTrace();
+        }
     }
 }

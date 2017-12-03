@@ -1,10 +1,13 @@
 package com.andreas.server.controller;
 
+import com.andreas.common.FileMetaDTO;
 import com.andreas.common.FileServer;
 import com.andreas.common.UserDTO;
 import com.andreas.server.database.DatabaseException;
 import com.andreas.server.database.FileServerDAO;
 import com.andreas.server.database.FileServerDAOImpl;
+import com.andreas.server.model.FileMetaData;
+import com.andreas.server.model.User;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -43,17 +46,16 @@ public class FileServerController extends UnicastRemoteObject implements FileSer
         //TODO: implement some kind of check
     }
 
-    public void insert(String username, String password) throws DatabaseException, RemoteException {
-        List<UserDTO> allUsers = getAllUsers();
+    @Override
+    public FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess) throws RemoteException, DatabaseException {
+        FileMetaData fileMetaData = new FileMetaData(filename, new User(currentUser.getId(), currentUser.getName()), readOnly, publicAccess);
+        fileServerDAO.insertFile(fileMetaData);
+        return fileMetaData;
+    }
 
-        boolean exists = false;
-        for (UserDTO userDTO : allUsers)
-            if (userDTO.getName().equals(username))
-                exists = true;
-        if (exists)
-            throw new DatabaseException("User already exists");
-
-        fileServerDAO.insertUser(username, password);
+    @Override
+    public List<FileMetaDTO> getFiles(UserDTO user) throws DatabaseException {
+        return fileServerDAO.getFiles(user);
     }
 
     private List<UserDTO> getAllUsers() throws DatabaseException, RemoteException {
