@@ -19,6 +19,8 @@ public interface FileMetaDTO extends Serializable{
     }
 
     default String getAccessRight(){
+        if (!publicAccess())
+            return "N/A";
         if (readOnly())
             return "Read only";
         else return "Read/Write";

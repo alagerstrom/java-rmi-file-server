@@ -33,12 +33,7 @@ public class FileServerController extends UnicastRemoteObject implements FileSer
             if (userDTO.getName().equals(username))
                 return null;
         }
-        fileServerDAO.insertUser(username, password);
-        try {
-            return fileServerDAO.getUserByName(username);
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
+        return fileServerDAO.insertUser(username, password);
     }
 
     @Override

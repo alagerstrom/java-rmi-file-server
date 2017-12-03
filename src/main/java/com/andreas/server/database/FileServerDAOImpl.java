@@ -26,6 +26,7 @@ public class FileServerDAOImpl implements FileServerDAO {
     private PreparedStatement insertUserStatement;
     private PreparedStatement getAllUsersStatement;
     private PreparedStatement getUserByNameStatement;
+    private PreparedStatement getUserByIdStatement;
     private PreparedStatement loginStatement;
     private PreparedStatement insertFileStatement;
     private PreparedStatement getFilesForUserStatement;
@@ -88,8 +89,23 @@ public class FileServerDAOImpl implements FileServerDAO {
         }
     }
 
-    @Override
-    public User getUserByName(String username) throws DatabaseException {
+    private User getUserById(int id) throws DatabaseException {
+        try {
+            getUserByIdStatement.setInt(1, id);
+            ResultSet resultSet = getUserByIdStatement.executeQuery();
+            if (resultSet.next())
+                return new User(
+                        resultSet.getInt(UserTable.COLUMN_ID),
+                        resultSet.getString(UserTable.COLUMN_NAME)
+                );
+            else throw new DatabaseException("Null owner");
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+
+    }
+
+    private User getUserByName(String username) throws DatabaseException {
         try {
             getUserByNameStatement.setString(1, username);
             ResultSet resultSet = getUserByNameStatement.executeQuery();
@@ -131,10 +147,10 @@ public class FileServerDAOImpl implements FileServerDAO {
         try {
             getFilesForUserStatement.setInt(1, user.getId());
             ResultSet resultSet = getFilesForUserStatement.executeQuery();
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 files.add(new FileMetaData(
                         resultSet.getString(FileMetaDataTable.COLUMN_FILENAME),
-                        new User(user.getId(), user.getName()),
+                        getUserById(resultSet.getInt(FileMetaDataTable.COLUMN_OWNER)),
                         resultSet.getBoolean(FileMetaDataTable.COLUMN_READ_ONLY),
                         resultSet.getBoolean(FileMetaDataTable.COLUMN_PUBLIC)
                 ));
@@ -143,7 +159,6 @@ public class FileServerDAOImpl implements FileServerDAO {
             throw new DatabaseException(e);
         }
 
-        //TODO: get public files
         return files;
     }
 
@@ -216,7 +231,11 @@ public class FileServerDAOImpl implements FileServerDAO {
         );
         this.getFilesForUserStatement = connection.prepareStatement(
                 "SELECT * FROM " + FileMetaDataTable.TABLE_NAME + " WHERE " +
-                FileMetaDataTable.COLUMN_OWNER + " = ?;"
+                        FileMetaDataTable.COLUMN_OWNER + " = ? OR " +
+                        FileMetaDataTable.COLUMN_PUBLIC + " = TRUE;"
+        );
+        this.getUserByIdStatement = connection.prepareStatement(
+                "SELECT * FROM " + UserTable.TABLE_NAME + " WHERE " + UserTable.COLUMN_ID + " = ?;"
         );
 
     }
