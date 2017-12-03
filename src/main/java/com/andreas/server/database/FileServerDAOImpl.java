@@ -30,6 +30,7 @@ public class FileServerDAOImpl implements FileServerDAO {
     private PreparedStatement loginStatement;
     private PreparedStatement insertFileStatement;
     private PreparedStatement getFilesForUserStatement;
+    private PreparedStatement deleteUserStatement;
 
     public FileServerDAOImpl() throws DatabaseException {
         Connection connection;
@@ -176,6 +177,17 @@ public class FileServerDAOImpl implements FileServerDAO {
 
     }
 
+    @Override
+    public void removeUser(UserDTO user) throws DatabaseException {
+        try {
+            deleteUserStatement.setInt(1, user.getId());
+            deleteUserStatement.execute();
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+
+    }
+
     private Connection createConnection() throws ClassNotFoundException, SQLException {
         Class.forName(DRIVER);
         return DriverManager.getConnection(URL, USER, PASSWORD);
@@ -236,6 +248,9 @@ public class FileServerDAOImpl implements FileServerDAO {
         );
         this.getUserByIdStatement = connection.prepareStatement(
                 "SELECT * FROM " + UserTable.TABLE_NAME + " WHERE " + UserTable.COLUMN_ID + " = ?;"
+        );
+        this.deleteUserStatement = connection.prepareStatement(
+                "DELETE FROM " + UserTable.TABLE_NAME + " WHERE " + UserTable.COLUMN_ID + " = ?;"
         );
 
     }

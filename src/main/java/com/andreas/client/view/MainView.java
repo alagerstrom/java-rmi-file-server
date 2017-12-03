@@ -62,6 +62,17 @@ public class MainView {
 
     @FXML
     public void unregister() {
+        ClientController.getInstance().unregister(new CompletionHandler<Void, Void>() {
+            @Override
+            public void completed(Void result, Void attachment) {
+                Platform.runLater(() -> showLoginView());
+            }
+
+            @Override
+            public void failed(Throwable exc, Void attachment) {
+
+            }
+        });
 
     }
 
@@ -70,9 +81,7 @@ public class MainView {
         ClientController.getInstance().logout(new CompletionHandler<Void, Void>() {
             @Override
             public void completed(Void result, Void attachment) {
-                Platform.runLater(() -> {
-                    showLoginView();
-                });
+                Platform.runLater(() -> showLoginView());
             }
 
             @Override

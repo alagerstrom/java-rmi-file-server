@@ -53,6 +53,11 @@ public class FileServerController extends UnicastRemoteObject implements FileSer
         return fileServerDAO.getFiles(user);
     }
 
+    @Override
+    public void unregister(UserDTO currentUser) throws DatabaseException {
+        fileServerDAO.removeUser(currentUser);
+    }
+
     private List<UserDTO> getAllUsers() throws DatabaseException, RemoteException {
         return fileServerDAO.getAllUsers();
     }

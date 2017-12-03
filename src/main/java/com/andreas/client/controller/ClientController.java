@@ -108,4 +108,15 @@ public class ClientController {
             e.printStackTrace();
         }
     }
+
+    public void unregister(CompletionHandler<Void, Void> completionHandler) {
+        files.clear();
+        try {
+            fileServer.unregister(currentUser);
+            completionHandler.completed(null, null);
+        } catch (DatabaseException | RemoteException e) {
+            completionHandler.failed(e, null);
+        }
+
+    }
 }

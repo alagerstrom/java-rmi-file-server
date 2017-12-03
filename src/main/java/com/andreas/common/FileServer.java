@@ -17,4 +17,6 @@ public interface FileServer extends Remote {
     FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess) throws RemoteException, DatabaseException;
 
     List<FileMetaDTO> getFiles(UserDTO user) throws RemoteException, DatabaseException;
+
+    void unregister(UserDTO currentUser) throws DatabaseException, RemoteException;
 }

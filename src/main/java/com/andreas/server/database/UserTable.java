@@ -5,5 +5,5 @@ class UserTable {
 
     static final String COLUMN_NAME = "name";
     static final String COLUMN_PASSWORD = "password";
-    public static final String COLUMN_ID = "id";
+    static final String COLUMN_ID = "id";
 }

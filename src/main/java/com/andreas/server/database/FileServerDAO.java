@@ -18,4 +18,5 @@ public interface FileServerDAO {
 
     void insertFile(FileMetaDTO fileMeta) throws DatabaseException;
 
+    void removeUser(UserDTO user) throws DatabaseException;
 }
