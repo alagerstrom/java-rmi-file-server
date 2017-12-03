@@ -12,11 +12,11 @@ public interface FileServer extends Remote {
 
     UserDTO registerUser(String username, String password) throws RemoteException, DatabaseException;
 
-    void logout(UserDTO user) throws RemoteException;
+    void logout(UserDTO user) throws RemoteException, NotLoggedInException;
 
-    FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess) throws RemoteException, DatabaseException;
+    FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess) throws RemoteException, DatabaseException, NotLoggedInException;
 
-    List<FileMetaDTO> getFiles(UserDTO user) throws RemoteException, DatabaseException;
+    List<FileMetaDTO> getFiles(UserDTO user) throws RemoteException, DatabaseException, NotLoggedInException;
 
-    void unregister(UserDTO currentUser) throws DatabaseException, RemoteException;
+    void unregister(UserDTO currentUser) throws DatabaseException, RemoteException, NotLoggedInException;
 }

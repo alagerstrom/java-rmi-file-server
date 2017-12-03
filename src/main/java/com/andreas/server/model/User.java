@@ -36,4 +36,19 @@ public class User implements UserDTO{
     public String toString() {
         return "[(USER) " + id + ", " + name + "]";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof UserDTO){
+            UserDTO other = (UserDTO) obj;
+            return other.getId() == id && other.getName().equals(name);
+        }
+        else return false;
+    }
+
+    @Override
+    public int hashCode() {
+        String string = toString();
+        return string.hashCode();
+    }
 }

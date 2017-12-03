@@ -1,9 +1,6 @@
 package com.andreas.client.controller;
 
-import com.andreas.common.Constants;
-import com.andreas.common.FileMetaDTO;
-import com.andreas.common.FileServer;
-import com.andreas.common.UserDTO;
+import com.andreas.common.*;
 import com.andreas.server.database.DatabaseException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -81,7 +78,7 @@ public class ClientController {
             try {
                 fileServer.logout(currentUser);
                 completionHandler.completed(null, null);
-            } catch (RemoteException e) {
+            } catch (NotLoggedInException | RemoteException e) {
                 completionHandler.failed(e,null);
             }
         });
@@ -92,7 +89,7 @@ public class ClientController {
         CompletableFuture.runAsync(()->{
             try {
                 files.addAll(fileServer.getFiles(currentUser));
-            } catch (RemoteException | DatabaseException e) {
+            } catch (NotLoggedInException | RemoteException | DatabaseException e) {
                 e.printStackTrace();
             }
         });
@@ -104,7 +101,7 @@ public class ClientController {
         try {
             FileMetaDTO fileMetaDTO = fileServer.uploadFile(filename, currentUser, readOnly, publicAccess);
             files.add(fileMetaDTO);
-        } catch (RemoteException | DatabaseException e) {
+        } catch (NotLoggedInException | RemoteException | DatabaseException e) {
             e.printStackTrace();
         }
     }
@@ -114,7 +111,7 @@ public class ClientController {
         try {
             fileServer.unregister(currentUser);
             completionHandler.completed(null, null);
-        } catch (DatabaseException | RemoteException e) {
+        } catch (DatabaseException | RemoteException | NotLoggedInException e) {
             completionHandler.failed(e, null);
         }
 
