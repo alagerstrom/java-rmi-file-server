@@ -143,6 +143,7 @@ public class ClientController {
         CompletableFuture.runAsync(()->{
             try {
                 fileServer.downloadFile(currentUser, fileToDownload);
+                completionHandler.completed(null, null);
             } catch (DatabaseException | RemoteException e) {
                 completionHandler.failed(e, "Server error.");
             } catch (AccessDeniedException e) {

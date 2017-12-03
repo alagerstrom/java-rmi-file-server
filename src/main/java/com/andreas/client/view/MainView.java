@@ -67,7 +67,31 @@ public class MainView {
         fileChooser.setTitle("Choose File");
         File file = fileChooser.showSaveDialog(new Stage());
         if (file != null){
-            ClientController.getInstance().download(file, fileMeta);
+            ClientController.getInstance().download(file, fileMeta, new CompletionHandler<Void, String>() {
+                @Override
+                public void completed(Void result, String attachment) {
+                    Platform.runLater(()->{
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("File download");
+                        alert.setHeaderText("File download");
+                        alert.setContentText("File downloaded successfully");
+                        alert.showAndWait();
+                    });
+
+
+                }
+
+                @Override
+                public void failed(Throwable exc, String attachment) {
+                    Platform.runLater(()->{
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("File download");
+                        alert.setHeaderText("Failed to download file");
+                        alert.setContentText(attachment);
+                        alert.showAndWait();
+                    });
+                }
+            });
         }
 
     }
