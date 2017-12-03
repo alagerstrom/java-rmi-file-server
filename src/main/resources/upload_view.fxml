@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.text.*?>
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -23,11 +21,16 @@
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Filename" GridPane.halignment="CENTER" />
       <Text fx:id="statusText" strokeType="OUTSIDE" strokeWidth="0.0" text="StatusText" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
       <Button mnemonicParsing="false" onAction="#upload" text="Upload" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
-      <TextField fx:id="filenameField" promptText="Filename" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="30.0" GridPane.columnSpan="2" GridPane.rowIndex="1">
          <children>
             <CheckBox fx:id="publicAccessCheckBox" mnemonicParsing="false" text="Public" />
             <CheckBox fx:id="readOnlyCheckBox" mnemonicParsing="false" text="Read only" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS">
+         <children>
+            <TextField fx:id="filenameField" promptText="Filename" />
+            <Button mnemonicParsing="false" onAction="#chooseFile" text="Choose..." />
          </children>
       </HBox>
    </children>

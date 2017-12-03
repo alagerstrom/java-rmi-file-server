@@ -5,6 +5,7 @@ import com.andreas.server.database.DatabaseException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.nio.channels.CompletionHandler;
 import java.rmi.Naming;
@@ -97,11 +98,11 @@ public class ClientController {
         return files;
     }
 
-    public void uploadFile(String filename, boolean readOnly, boolean publicAccess) {
-        //TODO: Change fake size to actual size
-        int fakeSize = 100;
+    public void uploadFile(File file, boolean readOnly, boolean publicAccess) {
+        int size = (int) file.length();
+        String filename = file.getName();
         try {
-            FileMetaDTO fileMetaDTO = fileServer.uploadFile(filename, currentUser, readOnly, publicAccess, fakeSize);
+            FileMetaDTO fileMetaDTO = fileServer.uploadFile(filename, currentUser, readOnly, publicAccess, size);
             files.add(fileMetaDTO);
         } catch (NotLoggedInException | RemoteException | DatabaseException e) {
             e.printStackTrace();
