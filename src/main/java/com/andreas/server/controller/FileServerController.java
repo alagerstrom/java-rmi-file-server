@@ -1,0 +1,63 @@
+package com.andreas.server.controller;
+
+import com.andreas.common.FileServer;
+import com.andreas.common.UserDTO;
+import com.andreas.server.database.DatabaseException;
+import com.andreas.server.database.FileServerDAO;
+import com.andreas.server.database.FileServerDAOImpl;
+
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+import java.sql.SQLException;
+import java.util.List;
+
+public class FileServerController extends UnicastRemoteObject implements FileServer{
+
+    private final FileServerDAO fileServerDAO;
+
+    public FileServerController() throws DatabaseException, RemoteException {
+        fileServerDAO = new FileServerDAOImpl();
+    }
+
+    public UserDTO login(String username, String password) throws DatabaseException, RemoteException {
+        return fileServerDAO.login(username, password);
+    }
+
+    @Override
+    public UserDTO registerUser(String username, String password) throws RemoteException, DatabaseException {
+        List<UserDTO> allUsers = getAllUsers();
+        for (UserDTO userDTO : allUsers){
+            if (userDTO.getName().equals(username))
+                return null;
+        }
+        fileServerDAO.insertUser(username, password);
+        try {
+            return fileServerDAO.getUserByName(username);
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    @Override
+    public void logout(UserDTO user) {
+        //TODO: implement some kind of check
+    }
+
+    public void insert(String username, String password) throws DatabaseException, RemoteException {
+        List<UserDTO> allUsers = getAllUsers();
+
+        boolean exists = false;
+        for (UserDTO userDTO : allUsers)
+            if (userDTO.getName().equals(username))
+                exists = true;
+        if (exists)
+            throw new DatabaseException("User already exists");
+
+        fileServerDAO.insertUser(username, password);
+    }
+
+    private List<UserDTO> getAllUsers() throws DatabaseException, RemoteException {
+        return fileServerDAO.getAllUsers();
+    }
+}
+

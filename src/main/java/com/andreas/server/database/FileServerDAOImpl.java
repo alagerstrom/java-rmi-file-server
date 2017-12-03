@@ -1,0 +1,224 @@
+package com.andreas.server.database;
+
+import com.andreas.common.FileMetaDTO;
+import com.andreas.common.UserDTO;
+import com.andreas.server.model.FileMetaData;
+import com.andreas.server.model.User;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class FileServerDAOImpl implements FileServerDAO {
+
+    private static final String HOST = "localhost";
+    private static final String PORT = "3306";
+    private static final String SCHEMA = "fileserver_schema";
+    private static final String USER = "fileserver";
+    private static final String PASSWORD = "fileserver";
+    private static final String DRIVER = "com.mysql.jdbc.Driver";
+    private static final String URL = "jdbc:mysql://" + HOST + ":" + PORT + "/" + SCHEMA;
+
+    private PreparedStatement createUserTableStatement;
+    private PreparedStatement createUserUniqueIndexStatement;
+    private PreparedStatement createFileMetaDataTableStatement;
+
+    private PreparedStatement insertUserStatement;
+    private PreparedStatement getAllUsersStatement;
+    private PreparedStatement getUserByNameStatement;
+    private PreparedStatement loginStatement;
+    private PreparedStatement insertFileStatment;
+
+    public FileServerDAOImpl() throws DatabaseException {
+        Connection connection;
+        try {
+            connection = createConnection();
+        } catch (Exception e) {
+            throw new DatabaseException(e);
+        }
+
+        try {
+            prepareStatements(connection);
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+
+        try {
+            createTables(connection);
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    @Override
+    public List<UserDTO> getAllUsers() throws DatabaseException {
+        ResultSet resultSet;
+        try {
+            resultSet = getAllUsersStatement.executeQuery();
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+
+        List<UserDTO> users = new ArrayList<>();
+        try {
+            while (resultSet.next()) {
+                users.add(
+                        new User(
+                                resultSet.getInt(UserTable.COLUMN_ID),
+                                resultSet.getString(UserTable.COLUMN_NAME)
+                        ));
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+
+        return users;
+    }
+
+    @Override
+    public User insertUser(String username, String password) throws DatabaseException {
+        try {
+            insertUserStatement.setString(1, username);
+            insertUserStatement.setString(2, password);
+            insertUserStatement.execute();
+            return getUserByName(username);
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    @Override
+    public User getUserByName(String username) throws DatabaseException {
+        try {
+            getUserByNameStatement.setString(1, username);
+            ResultSet resultSet = getUserByNameStatement.executeQuery();
+            if (resultSet.next()) {
+                return new User(
+                        resultSet.getInt(UserTable.COLUMN_ID),
+                        resultSet.getString(UserTable.COLUMN_NAME)
+                );
+            } else {
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    @Override
+    public UserDTO login(String username, String password) throws DatabaseException {
+        try {
+            loginStatement.setString(1, username);
+            loginStatement.setString(2, password);
+            ResultSet resultSet = loginStatement.executeQuery();
+            if (resultSet.next())
+                return new User(
+                        resultSet.getInt(UserTable.COLUMN_ID),
+                        resultSet.getString(UserTable.COLUMN_NAME)
+                );
+            else
+                return null;
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    @Override
+    public List<FileMetaDTO> getFiles(UserDTO currentUser) throws DatabaseException {
+        return null;
+    }
+
+    @Override
+    public void insertFile(FileMetaDTO fileMeta) throws DatabaseException {
+        try {
+            insertFileStatment.setString(1, fileMeta.getFilename());
+            insertFileStatment.setInt(2, fileMeta.getOwner().getId());
+            insertFileStatment.setBoolean(3, fileMeta.readOnly());
+            insertFileStatment.setBoolean(4, fileMeta.publicAccess());
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+
+    }
+
+    private Connection createConnection() throws ClassNotFoundException, SQLException {
+        Class.forName(DRIVER);
+        return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    private void prepareStatements(Connection connection) throws SQLException {
+        this.insertUserStatement = connection.prepareStatement(
+                "INSERT INTO " + UserTable.TABLE_NAME + "(" +
+                        UserTable.COLUMN_NAME + ", " +
+                        UserTable.COLUMN_PASSWORD + ")" + " VALUES (?, ?)");
+        this.createUserTableStatement = connection.prepareStatement(
+                "CREATE TABLE " + UserTable.TABLE_NAME +
+                        "(" +
+                        UserTable.COLUMN_ID + " INT PRIMARY KEY AUTO_INCREMENT, " +
+                        UserTable.COLUMN_NAME + " VARCHAR(30) NOT NULL, " +
+                        UserTable.COLUMN_PASSWORD + " VARCHAR(30) NOT NULL " +
+                        ");"
+        );
+        this.createUserUniqueIndexStatement = connection.prepareStatement(
+                "CREATE UNIQUE INDEX User_name_uindex ON "
+                        + UserTable.TABLE_NAME + " (" + UserTable.COLUMN_NAME + ");"
+        );
+        this.getAllUsersStatement = connection.prepareStatement(
+                "SELECT * FROM " + UserTable.TABLE_NAME + ";"
+        );
+        this.getUserByNameStatement = connection.prepareStatement(
+                "SELECT * FROM " + UserTable.TABLE_NAME +
+                        " WHERE " + UserTable.COLUMN_NAME + " = ?;"
+        );
+        this.loginStatement = connection.prepareStatement(
+                "SELECT * FROM " + UserTable.TABLE_NAME +
+                        " WHERE " + UserTable.COLUMN_NAME + " = ? AND " +
+                        UserTable.COLUMN_PASSWORD + " = ?;"
+        );
+        this.createFileMetaDataTableStatement = connection.prepareStatement(
+                "CREATE TABLE " + FileMetaDataTable.TABLE_NAME +
+                        " (" +
+                        FileMetaDataTable.COLUMN_FILENAME + " VARCHAR(30) PRIMARY KEY, " +
+                        FileMetaDataTable.COLUMN_OWNER + " INT, " +
+                        FileMetaDataTable.COLUMN_READ_ONLY + " BOOLEAN NOT NULL, " +
+                        FileMetaDataTable.COLUMN_PUBLIC + " BOOLEAN NOT NULL, " +
+                        " CONSTRAINT FileMetaData_User_id_fk FOREIGN KEY (" + FileMetaDataTable.COLUMN_OWNER + ")" +
+                        " REFERENCES " + UserTable.TABLE_NAME + " (" + UserTable.COLUMN_ID + ") ON DELETE CASCADE ON UPDATE CASCADE" +
+                        ");"
+        );
+        this.insertFileStatment = connection.prepareStatement(
+                "INSERT INTO " + FileMetaDataTable.TABLE_NAME + " (" +
+                        FileMetaDataTable.COLUMN_FILENAME + ", " +
+                        FileMetaDataTable.COLUMN_OWNER + ", " +
+                        FileMetaDataTable.COLUMN_READ_ONLY + ", " +
+                        FileMetaDataTable.COLUMN_PUBLIC +
+                        ") VALUES (?,?,?,?);"
+        );
+
+    }
+
+    private void createTables(Connection connection) throws SQLException, DatabaseException {
+        if (!tableExists(UserTable.TABLE_NAME, connection)) {
+            createUserTableStatement.execute();
+            createUserUniqueIndexStatement.execute();
+        }
+        if (!tableExists(FileMetaDataTable.TABLE_NAME, connection)) {
+            createFileMetaDataTableStatement.execute();
+        }
+
+    }
+
+    private boolean tableExists(String table, Connection connection) throws SQLException {
+        DatabaseMetaData databaseMetaData = connection.getMetaData();
+        ResultSet resultSet = databaseMetaData.getTables(null, null, null, null);
+
+        while (resultSet.next()) {
+            String tableName = resultSet.getString("TABLE_NAME");
+            if (tableName.equals(table)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+}
