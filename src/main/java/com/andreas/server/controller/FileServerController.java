@@ -9,11 +9,9 @@ import com.andreas.common.dto.UserDTO;
 import com.andreas.common.exceptions.DatabaseException;
 import com.andreas.server.database.FileServerDAO;
 import com.andreas.server.database.FileServerDAOImpl;
-import com.andreas.server.model.FileMetaData;
-import com.andreas.server.model.LoginManager;
-import com.andreas.server.model.Subscription;
-import com.andreas.server.model.User;
+import com.andreas.server.model.*;
 
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -24,6 +22,7 @@ public class FileServerController extends UnicastRemoteObject implements FileSer
     private final FileServerDAO fileServerDAO;
     private final LoginManager loginManager = new LoginManager();
     private final List<Subscription> subscriptions = new ArrayList<>();
+    private final FileHandler fileHandler = new FileHandler();
 
     public FileServerController() throws DatabaseException, RemoteException {
         fileServerDAO = new FileServerDAOImpl();
@@ -55,10 +54,11 @@ public class FileServerController extends UnicastRemoteObject implements FileSer
     }
 
     @Override
-    public synchronized FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess, int size) throws RemoteException, DatabaseException, NotLoggedInException {
+    public synchronized FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess, int size, byte[] data) throws IOException, DatabaseException, NotLoggedInException {
         if (!loginManager.isLoggedIn(currentUser))
             throw new NotLoggedInException();
         FileMetaData fileMetaData = new FileMetaData(filename, new User(currentUser.getId(), currentUser.getName()), readOnly, publicAccess, size);
+        fileHandler.save(fileMetaData, data);
         fileServerDAO.insertFile(fileMetaData);
         return fileMetaData;
     }
@@ -80,6 +80,7 @@ public class FileServerController extends UnicastRemoteObject implements FileSer
     @Override
     public synchronized void deleteFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, RemoteException, AccessDeniedException {
         fileServerDAO.deleteFile(currentUser, fileMeta);
+        fileHandler.delete(fileMeta);
         System.out.println("File deleted, subscriptions: " + subscriptions.size());
         for (Subscription subscription : subscriptions){
             if (subscription.getFileMeta().getFilename().equals(fileMeta.getFilename())){
@@ -91,7 +92,10 @@ public class FileServerController extends UnicastRemoteObject implements FileSer
     }
 
     @Override
-    public synchronized void downloadFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, RemoteException, AccessDeniedException {
+    public synchronized byte[] downloadFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, IOException, AccessDeniedException {
+        if (!fileServerDAO.hasAccessRights(currentUser, fileMeta))
+            throw new AccessDeniedException();
+        byte[] data = fileHandler.read(fileMeta);
         for (Subscription subscription : subscriptions){
             if (subscription.getFileMeta().getFilename().equals(fileMeta.getFilename())){
                 if (subscription.getUser().getId() != currentUser.getId()){
@@ -99,6 +103,7 @@ public class FileServerController extends UnicastRemoteObject implements FileSer
                 }
             }
         }
+        return data;
     }
 
     @Override

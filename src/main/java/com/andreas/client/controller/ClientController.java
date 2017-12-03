@@ -11,8 +11,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.channels.CompletionHandler;
+import java.nio.file.Files;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -99,9 +102,15 @@ public class ClientController {
         int size = (int) file.length();
         String filename = file.getName();
         try {
-            FileMetaDTO fileMetaDTO = fileServer.uploadFile(filename, currentUser, readOnly, publicAccess, size);
+            FileMetaDTO fileMetaDTO = null;
+            try {
+                fileMetaDTO = fileServer.uploadFile(filename, currentUser, readOnly, publicAccess, size, Files.readAllBytes(file.toPath()));
+            } catch (IOException e) {
+                System.err.println("Failed to read file.");
+                e.printStackTrace();
+            }
             files.add(fileMetaDTO);
-        } catch (NotLoggedInException | RemoteException | DatabaseException e) {
+        } catch (NotLoggedInException | DatabaseException e) {
             e.printStackTrace();
         }
     }
@@ -142,12 +151,18 @@ public class ClientController {
     public void download(File saveToFile, FileMetaDTO fileToDownload, CompletionHandler<Void, String> completionHandler) {
         CompletableFuture.runAsync(()->{
             try {
-                fileServer.downloadFile(currentUser, fileToDownload);
+                byte[] data = fileServer.downloadFile(currentUser, fileToDownload);
+                try(FileOutputStream fileOutputStream = new FileOutputStream(saveToFile)){
+                    fileOutputStream.write(data);
+                    fileOutputStream.close();
+                }
                 completionHandler.completed(null, null);
             } catch (DatabaseException | RemoteException e) {
                 completionHandler.failed(e, "Server error.");
             } catch (AccessDeniedException e) {
                 completionHandler.failed(e, "Access denied.");
+            } catch (IOException e) {
+                completionHandler.failed(e, "File not found.");
             }
         });
     }

@@ -22,4 +22,8 @@ public interface FileServerDAO {
     void removeUser(UserDTO user) throws DatabaseException;
 
     void deleteFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, AccessDeniedException;
+
+    boolean hasAccessRights(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException;
+
+    boolean hasWritePermissions(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException;
 }

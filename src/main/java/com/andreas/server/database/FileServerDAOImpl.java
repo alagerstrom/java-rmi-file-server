@@ -226,13 +226,14 @@ public class FileServerDAOImpl implements FileServerDAO {
 
     }
 
-    private boolean hasWritePermissions(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException {
+    public boolean hasWritePermissions(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException {
         FileMetaData fileMetaData = getFileByName(fileMeta.getFilename());
         assert fileMetaData != null;
         return fileMetaData.getOwner().getId() == currentUser.getId() || !fileMetaData.readOnly();
     }
 
-    private boolean hasAccessRights(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException {
+    @Override
+    public boolean hasAccessRights(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException {
         FileMetaData fileMetaData = getFileByName(fileMeta.getFilename());
         assert fileMetaData != null;
         return fileMetaData.getOwner().getId() == currentUser.getId() || fileMetaData.publicAccess();

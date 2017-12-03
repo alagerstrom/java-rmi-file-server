@@ -6,6 +6,7 @@ import com.andreas.common.exceptions.AccessDeniedException;
 import com.andreas.common.exceptions.NotLoggedInException;
 import com.andreas.common.exceptions.DatabaseException;
 
+import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -18,7 +19,7 @@ public interface FileServer extends Remote {
 
     void logout(UserDTO user) throws RemoteException, NotLoggedInException;
 
-    FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess, int size) throws RemoteException, DatabaseException, NotLoggedInException;
+    FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess, int size, byte[] data) throws IOException, DatabaseException, NotLoggedInException;
 
     List<FileMetaDTO> getFiles(UserDTO user) throws RemoteException, DatabaseException, NotLoggedInException;
 
@@ -26,7 +27,7 @@ public interface FileServer extends Remote {
 
     void deleteFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, RemoteException, AccessDeniedException;
 
-    void downloadFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, RemoteException, AccessDeniedException;
+    byte[] downloadFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, IOException, AccessDeniedException;
 
     void subscribe(FileClient fileClient, UserDTO currentUser, FileMetaDTO fileMeta) throws RemoteException;
 }
