@@ -1,6 +1,7 @@
 package com.andreas.client.view;
 
 import com.andreas.client.controller.ClientController;
+import com.andreas.common.FileMetaDTO;
 import com.andreas.server.model.FileMetaData;
 import com.andreas.common.Constants;
 import javafx.application.Platform;
@@ -19,11 +20,12 @@ import java.nio.channels.CompletionHandler;
 
 public class MainView {
     @FXML
-    TableColumn<FileMetaData, String>
+    TableColumn<FileMetaDTO, String>
             filenameColumn,
             ownerColumn,
             visibilityColumn,
-            accessRightsColumn;
+            accessRightsColumn,
+            sizeColumn;
 
     @FXML
     TableView fileTable;
@@ -34,6 +36,7 @@ public class MainView {
         ownerColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getOwner().toString()));
         visibilityColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFileAccess()));
         accessRightsColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getAccessRight()));
+        sizeColumn.setCellValueFactory(data -> new SimpleStringProperty("" + data.getValue().getSize()));
         ProgressIndicator progressIndicator = new ProgressIndicator();
         fileTable.setPlaceholder(progressIndicator);
         progressIndicator.setMaxSize(Constants.PROGRESS_INDICATOR_SIZE, Constants.PROGRESS_INDICATOR_SIZE);
@@ -86,7 +89,9 @@ public class MainView {
 
             @Override
             public void failed(Throwable exc, Void attachment) {
-
+                System.err.println("Failed to log out");
+                exc.printStackTrace();
+                Platform.runLater(()->showLoginView());
             }
         });
 

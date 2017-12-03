@@ -11,6 +11,7 @@
       <TableView fx:id="fileTable" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <columns>
           <TableColumn fx:id="filenameColumn" prefWidth="196.0" text="Filename" />
+            <TableColumn fx:id="sizeColumn" prefWidth="75.0" text="Size" />
           <TableColumn fx:id="ownerColumn" minWidth="0.0" prefWidth="170.0" text="Owner" />
             <TableColumn fx:id="visibilityColumn" prefWidth="101.0" text="Visibility" />
             <TableColumn fx:id="accessRightsColumn" prefWidth="110.0" text="Access rights" />

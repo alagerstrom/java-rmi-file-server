@@ -45,16 +45,16 @@ public class FileServerController extends UnicastRemoteObject implements FileSer
 
     @Override
     public void logout(UserDTO user) throws NotLoggedInException {
-        if (loginManager.isLoggedIn(user))
+        if (!loginManager.isLoggedIn(user))
             throw new NotLoggedInException();
         loginManager.removeLoggedInUser(user);
     }
 
     @Override
-    public FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess) throws RemoteException, DatabaseException, NotLoggedInException {
+    public FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess, int size) throws RemoteException, DatabaseException, NotLoggedInException {
         if (!loginManager.isLoggedIn(currentUser))
             throw new NotLoggedInException();
-        FileMetaData fileMetaData = new FileMetaData(filename, new User(currentUser.getId(), currentUser.getName()), readOnly, publicAccess);
+        FileMetaData fileMetaData = new FileMetaData(filename, new User(currentUser.getId(), currentUser.getName()), readOnly, publicAccess, size);
         fileServerDAO.insertFile(fileMetaData);
         return fileMetaData;
     }

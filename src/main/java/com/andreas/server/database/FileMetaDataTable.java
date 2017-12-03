@@ -8,4 +8,5 @@ public class FileMetaDataTable {
     static final String COLUMN_PUBLIC = "public";
     static final String COLUMN_READ_ONLY = "file_read_only";
 
+    static final String COLUMN_SIZE = "file_size";
 }

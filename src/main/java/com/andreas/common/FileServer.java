@@ -14,7 +14,7 @@ public interface FileServer extends Remote {
 
     void logout(UserDTO user) throws RemoteException, NotLoggedInException;
 
-    FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess) throws RemoteException, DatabaseException, NotLoggedInException;
+    FileMetaDTO uploadFile(String filename, UserDTO currentUser, boolean readOnly, boolean publicAccess, int size) throws RemoteException, DatabaseException, NotLoggedInException;
 
     List<FileMetaDTO> getFiles(UserDTO user) throws RemoteException, DatabaseException, NotLoggedInException;
 

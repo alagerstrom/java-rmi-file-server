@@ -26,4 +26,5 @@ public interface FileMetaDTO extends Serializable{
         else return "Read/Write";
     }
 
+    int getSize();
 }

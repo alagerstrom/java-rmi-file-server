@@ -153,7 +153,8 @@ public class FileServerDAOImpl implements FileServerDAO {
                         resultSet.getString(FileMetaDataTable.COLUMN_FILENAME),
                         getUserById(resultSet.getInt(FileMetaDataTable.COLUMN_OWNER)),
                         resultSet.getBoolean(FileMetaDataTable.COLUMN_READ_ONLY),
-                        resultSet.getBoolean(FileMetaDataTable.COLUMN_PUBLIC)
+                        resultSet.getBoolean(FileMetaDataTable.COLUMN_PUBLIC),
+                        resultSet.getInt(FileMetaDataTable.COLUMN_SIZE)
                 ));
             }
         } catch (SQLException e) {
@@ -170,6 +171,7 @@ public class FileServerDAOImpl implements FileServerDAO {
             insertFileStatement.setInt(2, fileMeta.getOwner().getId());
             insertFileStatement.setBoolean(3, fileMeta.readOnly());
             insertFileStatement.setBoolean(4, fileMeta.publicAccess());
+            insertFileStatement.setInt(5,fileMeta.getSize());
             insertFileStatement.execute();
         } catch (SQLException e) {
             throw new DatabaseException(e);
@@ -229,6 +231,7 @@ public class FileServerDAOImpl implements FileServerDAO {
                         FileMetaDataTable.COLUMN_OWNER + " INT, " +
                         FileMetaDataTable.COLUMN_READ_ONLY + " BOOLEAN NOT NULL, " +
                         FileMetaDataTable.COLUMN_PUBLIC + " BOOLEAN NOT NULL, " +
+                        FileMetaDataTable.COLUMN_SIZE + " INT, " +
                         " CONSTRAINT FileMetaData_User_id_fk FOREIGN KEY (" + FileMetaDataTable.COLUMN_OWNER + ")" +
                         " REFERENCES " + UserTable.TABLE_NAME + " (" + UserTable.COLUMN_ID + ") ON DELETE CASCADE ON UPDATE CASCADE" +
                         ");"
@@ -238,8 +241,9 @@ public class FileServerDAOImpl implements FileServerDAO {
                         FileMetaDataTable.COLUMN_FILENAME + ", " +
                         FileMetaDataTable.COLUMN_OWNER + ", " +
                         FileMetaDataTable.COLUMN_READ_ONLY + ", " +
-                        FileMetaDataTable.COLUMN_PUBLIC +
-                        ") VALUES (?,?,?,?);"
+                        FileMetaDataTable.COLUMN_PUBLIC + ", " +
+                        FileMetaDataTable.COLUMN_SIZE +
+                        ") VALUES (?,?,?,?,?);"
         );
         this.getFilesForUserStatement = connection.prepareStatement(
                 "SELECT * FROM " + FileMetaDataTable.TABLE_NAME + " WHERE " +

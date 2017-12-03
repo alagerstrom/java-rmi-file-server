@@ -98,8 +98,10 @@ public class ClientController {
     }
 
     public void uploadFile(String filename, boolean readOnly, boolean publicAccess) {
+        //TODO: Change fake size to actual size
+        int fakeSize = 100;
         try {
-            FileMetaDTO fileMetaDTO = fileServer.uploadFile(filename, currentUser, readOnly, publicAccess);
+            FileMetaDTO fileMetaDTO = fileServer.uploadFile(filename, currentUser, readOnly, publicAccess, fakeSize);
             files.add(fileMetaDTO);
         } catch (NotLoggedInException | RemoteException | DatabaseException e) {
             e.printStackTrace();

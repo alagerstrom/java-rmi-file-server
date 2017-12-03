@@ -6,14 +6,16 @@ import com.andreas.common.UserDTO;
 public class FileMetaData implements FileMetaDTO{
     private String filename;
     private User owner;
+    private int size;
     private boolean readOnly;
     private boolean publicAccess;
 
-    public FileMetaData(String filename, User owner, boolean readOnly, boolean publicAccess) {
+    public FileMetaData(String filename, User owner, boolean readOnly, boolean publicAccess, int size) {
         this.filename = filename;
         this.owner = owner;
         this.readOnly = readOnly;
         this.publicAccess = publicAccess;
+        this.size = size;
     }
 
     @Override
@@ -35,4 +37,10 @@ public class FileMetaData implements FileMetaDTO{
     public boolean publicAccess() {
         return publicAccess;
     }
+
+    @Override
+    public int getSize() {
+        return size;
+    }
+
 }
