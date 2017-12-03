@@ -25,4 +25,8 @@ public interface FileServer extends Remote {
     void unregister(UserDTO currentUser) throws DatabaseException, RemoteException, NotLoggedInException;
 
     void deleteFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, RemoteException, AccessDeniedException;
+
+    void downloadFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, RemoteException, AccessDeniedException;
+
+    void subscribe(FileClient fileClient, UserDTO currentUser, FileMetaDTO fileMeta) throws RemoteException;
 }

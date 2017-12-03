@@ -13,8 +13,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.channels.CompletionHandler;
 
@@ -52,12 +54,41 @@ public class MainView {
 
     @FXML
     public void download() {
+        FileMetaDTO fileMeta = fileTable.getSelectionModel().getSelectedItem();
+        if (fileMeta == null){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("No selected file");
+            alert.setHeaderText("No selected file");
+            alert.setContentText("You must select a file to download");
+            alert.showAndWait();
+            return;
+        }
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choose File");
+        File file = fileChooser.showSaveDialog(new Stage());
+        if (file != null){
+            ClientController.getInstance().download(file, fileMeta);
+        }
 
     }
 
     @FXML
-    public void subscribe() {
+    public void refresh(){
+        ClientController.getInstance().refreshFiles();
+    }
 
+    @FXML
+    public void subscribe() {
+        FileMetaDTO fileMeta = fileTable.getSelectionModel().getSelectedItem();
+        if (fileMeta == null){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("No selected file");
+            alert.setHeaderText("No selected file");
+            alert.setContentText("You must select a file to subscribe");
+            alert.showAndWait();
+            return;
+        }
+        ClientController.getInstance().subscribe(fileMeta);
     }
 
     @FXML

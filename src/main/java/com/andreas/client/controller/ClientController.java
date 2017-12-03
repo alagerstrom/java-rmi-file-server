@@ -1,5 +1,6 @@
 package com.andreas.client.controller;
 
+import com.andreas.client.view.SubscriptionHandler;
 import com.andreas.common.*;
 import com.andreas.common.dto.FileMetaDTO;
 import com.andreas.common.dto.UserDTO;
@@ -23,16 +24,16 @@ public class ClientController {
     private UserDTO currentUser;
     private ObservableList<FileMetaDTO> files = FXCollections.observableArrayList();
 
-    public static ClientController getInstance(){
+    public static ClientController getInstance() {
         return instance;
     }
 
-    private ClientController(){
+    private ClientController() {
 
     }
 
-    public void connect(CompletionHandler<Void, String> completionHandler){
-        CompletableFuture.runAsync(()->{
+    public void connect(CompletionHandler<Void, String> completionHandler) {
+        CompletableFuture.runAsync(() -> {
             try {
                 if (fileServer == null)
                     this.fileServer = (FileServer) Naming.lookup(Constants.FILE_SERVER_REGISTRY_NAME);
@@ -46,13 +47,13 @@ public class ClientController {
     }
 
     public void login(String username, String password, CompletionHandler<Void, String> completionHandler) {
-        CompletableFuture.runAsync(()->{
+        CompletableFuture.runAsync(() -> {
             try {
                 UserDTO user = fileServer.login(username, password);
-                if (user != null){
+                if (user != null) {
                     currentUser = user;
                     completionHandler.completed(null, "Logged in.");
-                }else{
+                } else {
                     completionHandler.failed(null, "Wrong username or password");
                 }
             } catch (RemoteException | DatabaseException e) {
@@ -62,13 +63,13 @@ public class ClientController {
     }
 
     public void registerUser(String username, String password, CompletionHandler<Void, String> completionHandler) {
-        CompletableFuture.runAsync(()->{
+        CompletableFuture.runAsync(() -> {
             try {
                 UserDTO user = fileServer.registerUser(username, password);
-                if (user != null){
+                if (user != null) {
                     currentUser = user;
                     completionHandler.completed(null, "Registered.");
-                }else{
+                } else {
                     completionHandler.failed(null, "User already exists.");
                 }
             } catch (RemoteException | DatabaseException e) {
@@ -79,26 +80,18 @@ public class ClientController {
 
     public void logout(CompletionHandler<Void, Void> completionHandler) {
         files.clear();
-        CompletableFuture.runAsync(()->{
+        CompletableFuture.runAsync(() -> {
             try {
                 fileServer.logout(currentUser);
                 completionHandler.completed(null, null);
             } catch (NotLoggedInException | RemoteException e) {
-                completionHandler.failed(e,null);
+                completionHandler.failed(e, null);
             }
         });
     }
 
     public ObservableList<FileMetaDTO> getAllFiles() {
-
-        CompletableFuture.runAsync(()->{
-            try {
-                files.addAll(fileServer.getFiles(currentUser));
-            } catch (NotLoggedInException | RemoteException | DatabaseException e) {
-                e.printStackTrace();
-            }
-        });
-
+        refreshFiles();
         return files;
     }
 
@@ -125,7 +118,7 @@ public class ClientController {
     }
 
     public void deleteFile(FileMetaDTO fileMeta, CompletionHandler<Void, String> completionHandler) {
-        CompletableFuture.runAsync(()->{
+        CompletableFuture.runAsync(() -> {
             try {
                 fileServer.deleteFile(currentUser, fileMeta);
                 files.remove(fileMeta);
@@ -134,6 +127,37 @@ public class ClientController {
                 completionHandler.failed(e, "Server error.");
             } catch (AccessDeniedException e) {
                 completionHandler.failed(e, "Access denied.");
+            }
+        });
+    }
+
+    public void subscribe(FileMetaDTO fileMeta) {
+        try {
+            fileServer.subscribe(new SubscriptionHandler(), currentUser, fileMeta);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void download(File saveToFile, FileMetaDTO fileToDownload, CompletionHandler<Void, String> completionHandler) {
+        CompletableFuture.runAsync(()->{
+            try {
+                fileServer.downloadFile(currentUser, fileToDownload);
+            } catch (DatabaseException | RemoteException e) {
+                completionHandler.failed(e, "Server error.");
+            } catch (AccessDeniedException e) {
+                completionHandler.failed(e, "Access denied.");
+            }
+        });
+    }
+
+    public void refreshFiles() {
+        files.clear();
+        CompletableFuture.runAsync(() -> {
+            try {
+                files.addAll(fileServer.getFiles(currentUser));
+            } catch (NotLoggedInException | RemoteException | DatabaseException e) {
+                e.printStackTrace();
             }
         });
     }

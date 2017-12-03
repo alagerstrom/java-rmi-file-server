@@ -34,6 +34,7 @@
                   <Button mnemonicParsing="false" onAction="#download" text="Download" />
                   <Button mnemonicParsing="false" onAction="#subscribe" text="Subscribe" />
                   <Button mnemonicParsing="false" onAction="#delete" text="Delete" />
+                  <Button mnemonicParsing="false" onAction="#refresh" text="Refresh" />
                </children>
             </HBox>
             <HBox alignment="TOP_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1">
