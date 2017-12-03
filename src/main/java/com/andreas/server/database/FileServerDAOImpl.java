@@ -1,7 +1,9 @@
 package com.andreas.server.database;
 
-import com.andreas.common.FileMetaDTO;
-import com.andreas.common.UserDTO;
+import com.andreas.common.dto.FileMetaDTO;
+import com.andreas.common.dto.UserDTO;
+import com.andreas.common.exceptions.AccessDeniedException;
+import com.andreas.common.exceptions.DatabaseException;
 import com.andreas.server.model.FileMetaData;
 import com.andreas.server.model.User;
 
@@ -30,7 +32,9 @@ public class FileServerDAOImpl implements FileServerDAO {
     private PreparedStatement loginStatement;
     private PreparedStatement insertFileStatement;
     private PreparedStatement getFilesForUserStatement;
+    private PreparedStatement getFileByNameStatement;
     private PreparedStatement deleteUserStatement;
+    private PreparedStatement deleteFileStatement;
 
     public FileServerDAOImpl() throws DatabaseException {
         Connection connection;
@@ -123,6 +127,25 @@ public class FileServerDAOImpl implements FileServerDAO {
         }
     }
 
+    private FileMetaData getFileByName(String filename) throws DatabaseException {
+        try {
+            getFileByNameStatement.setString(1, filename);
+            ResultSet resultSet = getFileByNameStatement.executeQuery();
+            if (resultSet.next())
+                return new FileMetaData(
+                        resultSet.getString(FileMetaDataTable.COLUMN_FILENAME),
+                        getUserById(resultSet.getInt(FileMetaDataTable.COLUMN_OWNER)),
+                        resultSet.getBoolean(FileMetaDataTable.COLUMN_READ_ONLY),
+                        resultSet.getBoolean(FileMetaDataTable.COLUMN_PUBLIC),
+                        resultSet.getInt(FileMetaDataTable.COLUMN_SIZE)
+                        );
+            else return null;
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+
+    }
+
     @Override
     public UserDTO login(String username, String password) throws DatabaseException {
         try {
@@ -171,7 +194,7 @@ public class FileServerDAOImpl implements FileServerDAO {
             insertFileStatement.setInt(2, fileMeta.getOwner().getId());
             insertFileStatement.setBoolean(3, fileMeta.readOnly());
             insertFileStatement.setBoolean(4, fileMeta.publicAccess());
-            insertFileStatement.setInt(5,fileMeta.getSize());
+            insertFileStatement.setInt(5, fileMeta.getSize());
             insertFileStatement.execute();
         } catch (SQLException e) {
             throw new DatabaseException(e);
@@ -188,6 +211,31 @@ public class FileServerDAOImpl implements FileServerDAO {
             throw new DatabaseException(e);
         }
 
+    }
+
+    @Override
+    public void deleteFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, AccessDeniedException {
+        if (!hasAccessRights(currentUser, fileMeta) || !hasWritePermissions(currentUser, fileMeta))
+            throw new AccessDeniedException();
+        try {
+            deleteFileStatement.setString(1, fileMeta.getFilename());
+            deleteFileStatement.execute();
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+
+    }
+
+    private boolean hasWritePermissions(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException {
+        FileMetaData fileMetaData = getFileByName(fileMeta.getFilename());
+        assert fileMetaData != null;
+        return fileMetaData.getOwner().getId() == currentUser.getId() || !fileMetaData.readOnly();
+    }
+
+    private boolean hasAccessRights(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException {
+        FileMetaData fileMetaData = getFileByName(fileMeta.getFilename());
+        assert fileMetaData != null;
+        return fileMetaData.getOwner().getId() == currentUser.getId() || fileMetaData.publicAccess();
     }
 
     private Connection createConnection() throws ClassNotFoundException, SQLException {
@@ -255,6 +303,13 @@ public class FileServerDAOImpl implements FileServerDAO {
         );
         this.deleteUserStatement = connection.prepareStatement(
                 "DELETE FROM " + UserTable.TABLE_NAME + " WHERE " + UserTable.COLUMN_ID + " = ?;"
+        );
+        this.deleteFileStatement = connection.prepareStatement(
+                "DELETE FROM " + FileMetaDataTable.TABLE_NAME + " WHERE " +
+                        FileMetaDataTable.COLUMN_FILENAME + " = ?;"
+        );
+        this.getFileByNameStatement = connection.prepareStatement(
+            "SELECT * FROM " + FileMetaDataTable.TABLE_NAME + " WHERE " + FileMetaDataTable.COLUMN_FILENAME + " = ?;"
         );
 
     }

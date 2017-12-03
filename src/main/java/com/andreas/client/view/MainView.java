@@ -1,8 +1,7 @@
 package com.andreas.client.view;
 
 import com.andreas.client.controller.ClientController;
-import com.andreas.common.FileMetaDTO;
-import com.andreas.server.model.FileMetaData;
+import com.andreas.common.dto.FileMetaDTO;
 import com.andreas.common.Constants;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -10,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -28,7 +28,7 @@ public class MainView {
             sizeColumn;
 
     @FXML
-    TableView fileTable;
+    TableView<FileMetaDTO> fileTable;
 
     @FXML
     public void initialize() {
@@ -37,9 +37,6 @@ public class MainView {
         visibilityColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFileAccess()));
         accessRightsColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getAccessRight()));
         sizeColumn.setCellValueFactory(data -> new SimpleStringProperty("" + data.getValue().getSize()));
-        ProgressIndicator progressIndicator = new ProgressIndicator();
-        fileTable.setPlaceholder(progressIndicator);
-        progressIndicator.setMaxSize(Constants.PROGRESS_INDICATOR_SIZE, Constants.PROGRESS_INDICATOR_SIZE);
         fileTable.setItems(ClientController.getInstance().getAllFiles());
     }
 
@@ -61,6 +58,42 @@ public class MainView {
     @FXML
     public void subscribe() {
 
+    }
+
+    @FXML
+    public void delete(){
+        FileMetaDTO fileMeta = fileTable.getSelectionModel().getSelectedItem();
+        if (fileMeta == null){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("No selected file");
+            alert.setHeaderText("No selected file");
+            alert.setContentText("You must select a file to delete");
+            alert.showAndWait();
+            return;
+        }
+        ClientController.getInstance().deleteFile(fileMeta, new CompletionHandler<Void, String>() {
+            @Override
+            public void completed(Void result, String attachment) {
+                Platform.runLater(()->{
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Deleted");
+                    alert.setHeaderText("Deleted");
+                    alert.setContentText("File was successfully deleted.");
+                    alert.showAndWait();
+                });
+            }
+
+            @Override
+            public void failed(Throwable exc, String attachment) {
+                Platform.runLater(()->{
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error");
+                    alert.setHeaderText("Error");
+                    alert.setContentText(attachment);
+                    alert.showAndWait();
+                });
+            }
+        });
     }
 
     @FXML

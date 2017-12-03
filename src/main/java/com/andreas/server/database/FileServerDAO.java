@@ -1,10 +1,11 @@
 package com.andreas.server.database;
 
-import com.andreas.common.FileMetaDTO;
-import com.andreas.common.UserDTO;
+import com.andreas.common.dto.FileMetaDTO;
+import com.andreas.common.dto.UserDTO;
+import com.andreas.common.exceptions.AccessDeniedException;
+import com.andreas.common.exceptions.DatabaseException;
 import com.andreas.server.model.User;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public interface FileServerDAO {
@@ -19,4 +20,6 @@ public interface FileServerDAO {
     void insertFile(FileMetaDTO fileMeta) throws DatabaseException;
 
     void removeUser(UserDTO user) throws DatabaseException;
+
+    void deleteFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, AccessDeniedException;
 }

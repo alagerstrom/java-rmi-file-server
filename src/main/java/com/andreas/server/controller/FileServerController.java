@@ -1,10 +1,11 @@
 package com.andreas.server.controller;
 
-import com.andreas.common.FileMetaDTO;
+import com.andreas.common.dto.FileMetaDTO;
 import com.andreas.common.FileServer;
-import com.andreas.common.NotLoggedInException;
-import com.andreas.common.UserDTO;
-import com.andreas.server.database.DatabaseException;
+import com.andreas.common.exceptions.AccessDeniedException;
+import com.andreas.common.exceptions.NotLoggedInException;
+import com.andreas.common.dto.UserDTO;
+import com.andreas.common.exceptions.DatabaseException;
 import com.andreas.server.database.FileServerDAO;
 import com.andreas.server.database.FileServerDAOImpl;
 import com.andreas.server.model.FileMetaData;
@@ -13,7 +14,6 @@ import com.andreas.server.model.User;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.sql.SQLException;
 import java.util.List;
 
 public class FileServerController extends UnicastRemoteObject implements FileServer{
@@ -71,6 +71,11 @@ public class FileServerController extends UnicastRemoteObject implements FileSer
         if (!loginManager.isLoggedIn(currentUser))
             throw new NotLoggedInException();
         fileServerDAO.removeUser(currentUser);
+    }
+
+    @Override
+    public void deleteFile(UserDTO currentUser, FileMetaDTO fileMeta) throws DatabaseException, RemoteException, AccessDeniedException {
+        fileServerDAO.deleteFile(currentUser, fileMeta);
     }
 
     private List<UserDTO> getAllUsers() throws DatabaseException, RemoteException {

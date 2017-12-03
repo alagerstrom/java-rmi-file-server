@@ -1,6 +1,6 @@
 package com.andreas.server.model;
 
-import com.andreas.common.UserDTO;
+import com.andreas.common.dto.UserDTO;
 
 public class User implements UserDTO{
     private int id;

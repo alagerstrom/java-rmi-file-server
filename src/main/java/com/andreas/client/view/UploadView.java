@@ -45,12 +45,14 @@ public class UploadView {
     }
 
     @FXML
-    public void chooseFile(ActionEvent actionEvent){
+    public void chooseFile(){
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Resource File");
+        fileChooser.setTitle("Choose File");
         File file = fileChooser.showOpenDialog(new Stage());
-        if (file != null)
+        if (file != null){
             filenameField.setText(file.getName());
+            choosenFile = file;
+        }
     }
 
 

@@ -1,7 +1,11 @@
 package com.andreas.client.controller;
 
 import com.andreas.common.*;
-import com.andreas.server.database.DatabaseException;
+import com.andreas.common.dto.FileMetaDTO;
+import com.andreas.common.dto.UserDTO;
+import com.andreas.common.exceptions.AccessDeniedException;
+import com.andreas.common.exceptions.NotLoggedInException;
+import com.andreas.common.exceptions.DatabaseException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -118,5 +122,19 @@ public class ClientController {
             completionHandler.failed(e, null);
         }
 
+    }
+
+    public void deleteFile(FileMetaDTO fileMeta, CompletionHandler<Void, String> completionHandler) {
+        CompletableFuture.runAsync(()->{
+            try {
+                fileServer.deleteFile(currentUser, fileMeta);
+                files.remove(fileMeta);
+                completionHandler.completed(null, null);
+            } catch (DatabaseException | RemoteException e) {
+                completionHandler.failed(e, "Server error.");
+            } catch (AccessDeniedException e) {
+                completionHandler.failed(e, "Access denied.");
+            }
+        });
     }
 }

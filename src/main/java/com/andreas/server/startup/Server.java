@@ -2,7 +2,7 @@ package com.andreas.server.startup;
 
 import com.andreas.common.Constants;
 import com.andreas.server.controller.FileServerController;
-import com.andreas.server.database.DatabaseException;
+import com.andreas.common.exceptions.DatabaseException;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;

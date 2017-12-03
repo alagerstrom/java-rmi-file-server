@@ -1,4 +1,4 @@
-package com.andreas.server.database;
+package com.andreas.common.exceptions;
 
 public class DatabaseException extends Exception{
     public DatabaseException(String message) {

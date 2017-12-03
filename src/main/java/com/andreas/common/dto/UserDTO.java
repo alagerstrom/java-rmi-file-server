@@ -1,4 +1,4 @@
-package com.andreas.common;
+package com.andreas.common.dto;
 
 import java.io.Serializable;
 

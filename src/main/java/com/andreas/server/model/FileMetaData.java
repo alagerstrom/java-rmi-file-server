@@ -1,7 +1,7 @@
 package com.andreas.server.model;
 
-import com.andreas.common.FileMetaDTO;
-import com.andreas.common.UserDTO;
+import com.andreas.common.dto.FileMetaDTO;
+import com.andreas.common.dto.UserDTO;
 
 public class FileMetaData implements FileMetaDTO{
     private String filename;
